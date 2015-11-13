@@ -2,71 +2,72 @@
  * Gemini CDMP-7000 controller script v1.2
  * For Mixxx 1.11.0
  * Written by djtrinidad
- *
+ * Copyright 2014
 **/
 
 // Changelog v1.2
 // Fixed clearing/lighting leds for hotcues if song has them set or not
+// Incorporated Pitch Ranges into Button/LCD
+// Incorprated BPM in LCD (may still not happen on first load)
+// Updates LCD with Vinyl and Hotcue messages
 
 // ---- remaining issues
-// slip mode doesn't work unless you manually turn it on and off
-// no flashing play buttons, they turn off after first use
+// slip mode doesn't work unless you manually turn it off (disable needs to be called on wheel hand lift)
+// no flashing play buttons, they turn off after first use (need to turn back on after track stop)
 // auto cue button doesn't do anything, easy fix
 // back button does't toggle directory mode
 // Set Master Tempo to Keylock, not sure what it is now 
+// many more bug fixes where found
+// every once in a while scratch mode ignores vinyl button, hard to respoduce it's intermitent
 
 
 // Todo:
-// Incorporate Pitch Ranges - DONE
-// Incorporate LCD pitch changes/Range update - DONE
-// Incorprate BPM in LCD 1/2 DONE
-// Song title to LCD
+// Song title to LCD (doesn't look possible with 1.11)
 // Elapsed time to LCD
-// Update LCD with Vinyl and Hotcue message - DONE
+// implement engine connects
+// Work towards port to Mixxx 1.12 later
 
 
-//-----------  Initial function statement
+// ------------------------------------------
+// ---    Initialization Functions    ---
+// ------------------------------------------
 
 function cdmp7000() {}
 
 
-// ----------   Initialize variables    ----------
+// Initialize variables
 //
 cdmp7000.reverse_play_d1 = false;
 cdmp7000.reverse_play_d2 = false;
 directoryactive = false;
 
-// ----------   Global variables    ----------
+// Global variables
 //
 
 cdmp7000.pitchRanges = [ 0.08, 0.16, 0.25, 0.5, 0.100 ];   // Available pitch ranges
-
 cdmp7000.sysex = [0xF0, 0x7D, 0x01];  // Preamble for all SysEx messages and song info for this device
-
 cdmp7000.LCD_CUE = [ 0x3C, 0x74, 0x69, 0x6D, 0x65, 0x3E, 0x3C, 0x63, 0x75, 0x65, 0x30, 0x3E ];
 cdmp7000.LCD_CUE1 = [ 0x3C, 0x74, 0x69, 0x6D, 0x65, 0x3E, 0x3C, 0x63, 0x75, 0x65, 0x31, 0x3E ];
 cdmp7000.LCD_CUE2 = [ 0x3C, 0x74, 0x69, 0x6D, 0x65, 0x3E, 0x3C, 0x63, 0x75, 0x65, 0x32, 0x3E ];
 cdmp7000.LCD_CUE3 = [ 0x3C, 0x74, 0x69, 0x6D, 0x65, 0x3E, 0x3C, 0x63, 0x75, 0x65, 0x33, 0x3E ];
-
 cdmp7000.LCD_LOOP_IN = [ 0x3C, 0x74, 0x69, 0x6D, 0x65, 0x3E, 0x3C, 0x6C, 0x69, 0x6E, 0x3E ];
 cdmp7000.LCD_LOOP_OUT = [ 0x3C, 0x74, 0x69, 0x6D, 0x65, 0x3E, 0x3C, 0x6C, 0x6F, 0x75, 0x74, 0x3E ];
-
 //cdmp7000.LCD_PLAY_POS = [0xF0, 0x7D, 0x01, 0x3C, 0x74, 0x69, 0x6D, 0x65, 0x3E, 0x3C, 0x70, 0x6C, 0x61, 0x79, 0x3E];
 cdmp7000.LCD_PLAY_POS = [0xF0, 0x7D, 0x01, 0x3C, 0x74, 0x69, 0x6D, 0x65, 0x3E];
 cdmp7000.LCD_PAUSE_POS = [ 0x3C, 0x74, 0x69, 0x6D, 0x65, 0x3E, 0x3C, 0x70, 0x61, 0x75, 0x73, 0x65, 0x3E];
-
 cdmp7000.LCD_BPM = [0xF0, 0x7D, 0x01, 0x3C, 0x62, 0x70, 0x6D, 0x3E];
 cdmp7000.LCD_PITCH = [0xF0, 0x7D, 0x01, 0x3C, 0x70, 0x69, 0x74, 0x63, 0x68, 0x3E];
 cdmp7000.LCD_RANGE = [0xF0, 0x7D, 0x01, 0x3C, 0x72, 0x61, 0x6E, 0x67, 0x65, 0x3E ];
 cdmp7000.LCD_FX_PARAM = [ 0x3C, 0x65, 0x66, 0x78, 0x3E ];
 
-// Format may be midi.sendSysexMsg(cdmp7000.sysex.concat([cdmp7000.LCD_BPM],message.toInt(), 0xF7),7+message.length);
+// Format!
+// may be midi.sendSysexMsg(cdmp7000.sysex.concat([cdmp7000.LCD_BPM],message.toInt(), 0xF7),7+message.length);
 // var message = "Whatever";
 // length can be adjusted, preamble is 3 bytes, plus close byte is 4
 
 
-// ----------   Functions   ----------
-// init & shutdown
+//   Functions - init & shutdown
+// 
 
 cdmp7000.init = function (channel, control, value, status, group) {
 
@@ -93,20 +94,21 @@ engine.setValue(cdmp7000.secondDeckGroup,'rateRange', 0.08);
 
 engine.connectControl(cdmp7000.firstDeckGroup,"rate","cdmp7000.rate_d1");
 engine.connectControl(cdmp7000.secondDeckGroup,"rate","cdmp7000.rate_d2");
+// may need to add a connect here to turn play led on when stop is pressed
 
+// Turn off all leds to begin with
+    for (i=0x01; i<=0x60; i++) midi.sendShortMsg(0x90,i,0x00); 
 
-    for (i=0x01; i<=0x60; i++) midi.sendShortMsg(0x90,i,0x00); // Turn off all leds to begin with
-
-    // lcd clear method
+// Factory lcd clear method
     midi.sendSysexMsg(cdmp7000.sysex.concat([0x3C, 0x62, 0x79, 0x65, 0x3E, 0xF7]),9);
 
-    // welcome message
+// send welcome message
     message = "<artist><title>MIXXX<album><genre><length>20<index>0";
-    midi.sendSysexMsg(cdmp7000.sysex.concat(message.toInt(), 0xF7),4+message.length);   // Set song info
+    midi.sendSysexMsg(cdmp7000.sysex.concat(message.toInt(), 0xF7),4+message.length);   // sendto lcd song name slot
 
-} // end init
+} 
 
-// shutdown
+// Shutdown Function
 
 cdmp7000.shutdown = function() {
 
@@ -117,13 +119,14 @@ cdmp7000.shutdown = function() {
 
 }
 
+/// ----- End of Init/Shutdown & Initialization section
+
 
 cdmp7000.playPositionChanged = function (channel, control, value, status, group) {
 
 var currentValue2 = engine.getValue(group,"playposition");
 print ("Play Pos:"+currentValue2);
 }
-
 
 
 // ------------------------------------------
@@ -238,7 +241,7 @@ cdmp7000.slip_enabled_d2 = function(channel, control, value, status, group) {
 // --------    Jog Wheel Functions   --------
 // ------------------------------------------
 
-// Deck 1 - If wheels are touched and vinyl is on, then scratch is enabled
+// Deck 1 - Step 1 If wheels are touched and vinyl is on, then scratch is enabled
 cdmp7000.wheelTouch_d1 = function (channel, control, value, status) {
 
     if ((value == 0x7f) && (cdmp7000.vinylButton_d1 == true)) {
@@ -251,7 +254,7 @@ cdmp7000.wheelTouch_d1 = function (channel, control, value, status) {
 
 }
 
-// Deck 1 - If scratch is enabled by wheelTouch_d1 then scratch on wheel turn, otherwise jog
+// Deck 1 - Step 2 If scratch is enabled by wheelTouch_d1 then scratch on wheel turn, otherwise jog
 cdmp7000.wheelTurn_d1 = function (channel, control, value, status, group) {
 
   var newValue=(value-64);
@@ -268,7 +271,7 @@ cdmp7000.wheelTurn_d1 = function (channel, control, value, status, group) {
 }
 
 
-// Deck 2 - If wheels are touched and vinyl is on, then scratch  is enabled
+// Deck 2 - Step 1 If wheels are touched and vinyl is on, then scratch  is enabled
 cdmp7000.wheelTouch_d2 = function (channel, control, value, status) {
 
     if ((value == 0x7f) && (cdmp7000.vinylButton_d2 == true)) {
@@ -281,7 +284,7 @@ cdmp7000.wheelTouch_d2 = function (channel, control, value, status) {
 }
 
 
-// Deck 2 - If scratch is enabled by wheelTouch_d2 then scratch on wheel turn, otherwise jog
+// Deck 2 - Step 2 If scratch is enabled by wheelTouch_d2 then scratch on wheel turn, otherwise jog
 cdmp7000.wheelTurn_d2 = function (channel, control, value, status, group) {
 
 var newValue=(value-64);
@@ -335,8 +338,6 @@ cdmp7000.ToggleDirectory = function(channel, control, value, status, group) {
          }
 
  }
-
-
 
 // ------------------------------------------
 // ------   Hotcue/Loops Functions   --------
@@ -393,9 +394,7 @@ cdmp7000.hotcue_activate_d1 = function(group,hotcue,value,led) {
        cdmp7000.memoButton_d1 = false;
        cdmp7000.setSongLcd(key, 1);
 
-      // Needs some code to turn the leds off when hotcue clears  (is this still true!?!?)
-        
-    } else if ((value == 0x7f) && (cdmp7000.memoButton_d1 == false) && (result == 0))  {
+      } else if ((value == 0x7f) && (cdmp7000.memoButton_d1 == false) && (result == 0))  {
 
     key = 'hotcue_' + hotcue + '_set';
     engine.setValue(group,key,value);
@@ -615,7 +614,7 @@ cdmp7000.fx3_enable_d2 = function (channel, control, value, status, group) {
 
 
 // ------------------------------------------
-// -------   Cue/Play Functions   -----------
+// ---  Load Track - Cue/Play LED Functions   ---
 // ------------------------------------------
 
 
@@ -627,7 +626,7 @@ cdmp7000.LoadTrack = function(channel, control, value, status, group) {
     {
         engine.setValue(group, "LoadSelectedTrack", 1);
 
-        // Turn on Cue led solid & flash play button
+        // Turn on Cue led solid & flash play button (this doesn't flash maybe a connect?)
                        // cue
                        midi.sendShortMsg(0x90,0x01,0x7F);
                        // play
@@ -636,7 +635,7 @@ cdmp7000.LoadTrack = function(channel, control, value, status, group) {
     }
     else engine.setValue(group, "LoadSelectedTrack", 0);
 
-    // check song for hotcues set, turn on appropriate led if needed or turn off from previous song
+    // (NEW) check song for hotcues set, turn on appropriate led if needed or turn off from previous song
     if(engine.getValue(group, "hotcue_1_enabled") == 1)
     {
      midi.sendShortMsg(0x90,0x05,0x7F);
@@ -666,9 +665,7 @@ cdmp7000.LoadTrack = function(channel, control, value, status, group) {
     currentRange = currentRange*100
     currentRange = Math.round(currentRange);
 
-    currentDur = currentDur*312       // this is inaccurate, varies by 10 seconds or so
-
-    
+    currentDur = currentDur*312       // this is inaccurate, varies by 10 seconds or so and never updates
 
     print( "BPM!:"+currentBpm);  // for debug
     print( "Range!:"+currentRange);  // for debug
@@ -714,7 +711,7 @@ cdmp7000.rate_d2 = function (channel, control, value, status, group) {
         pitchValue += '' 
         print( "Deck 2 rate:"+pitchValue);  // for debug    
         midi.sendSysexMsg(cdmp7000.LCD_PITCH.concat(pitchValue.toInt(), 0xF7),11+pitchValue.length); 
-        // when the pitch slider is changed, we update the bpm as well
+        // when the pitch slider is changed, we update the bpm as well!
         currentBpm += '' 
         midi.sendSysexMsg(cdmp7000.LCD_BPM.concat(currentBpm.toInt(), 0xF7),9+currentBpm.length);
 }
@@ -726,9 +723,9 @@ cdmp7000.rateRange = function (channel, control, value, status, group) {
   currentRange = Math.round(currentRange);
 
 
-    // code to toggle between 8 - 100 range
-    // there has to be a more efficient way of doing this, maybe external lcd update function
-    // i set, then get, then update
+// code to toggle between 8 - 100 range
+// there has to be a more efficient way of doing this, maybe external lcd update function
+// set, then get, then update
   if (currentRange == "4") {
      engine.setValue(group,'rateRange', 0.08);
      var newRange = engine.getValue(group,'rateRange');
@@ -767,7 +764,7 @@ cdmp7000.rateRange = function (channel, control, value, status, group) {
   }
 
 
-                       } // end if val = 0x7f
+    } // end if val = 0x7f
 }
 
 
