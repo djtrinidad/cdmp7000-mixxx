@@ -10,49 +10,49 @@ I plan on attempting an updated mapping, the only draw back to these models is t
 
 [Planned Map Features]
 Deck:
-    Play Button /n
-    Cue Button
-    Sync will be Momentary & Longpress [Master Tempo Button]
-    Tempo Fader
-    Pitch Bend -/+
-    Range Button should still be relative
-    Track Search Buttons* can most likely be mapped or used for something else
-    Search Buttons* can most likely be mapped or used for something else
-    Direction Button
-    Slip Button
-    Vinyl Mode
-    Jog Wheel/Scratch
+    Play Button,
+    Cue Button,
+    Sync will be Momentary & Longpress [Master Tempo Button],
+    Tempo Fader,
+    Pitch Bend -/+,
+    Range Button should still be relative,
+    Track Search Buttons* can most likely be mapped or used for something else,
+    Search Buttons* can most likely be mapped or used for something else,
+    Direction Button,
+    Slip Button,
+    Vinyl Mode,
+    Jog Wheel/Scratch,
     
 Loops:
-    Loop-In
-    Loop-Out
-    Reloop/Exit
+    Loop-In,
+    Loop-Out,
+    Reloop/Exit,
 
 Effects:
-    Filter/Wah - Mapped to Effect 1
-    Flanger/Trance - Mapped to Effect 2
-    Echo/Bubble - Mapped to Effect 3
-    Hold Button - Thinking of using this a per Deck 'Shift' button. (see hot cue section below)
+    Filter/Wah - Mapped to Effect 1,
+    Flanger/Trance - Mapped to Effect 2,
+    Echo/Bubble - Mapped to Effect 3,
+    Hold Button - Thinking of using this a per Deck 'Shift' button. (see hot cue section below),
     
-   Level Knob Dry/Wet - Effect 1 Knob
-   Start Time Knob -/+ - Effect 2 Knob
-   Stop Time Knob -/+ - Effect 3 Knob
+   Level Knob Dry/Wet - Effect 1 Knob,
+   Start Time Knob -/+ - Effect 2 Knob,
+   Stop Time Knob -/+ - Effect 3 Knob,
    
 Hot Cues: 
-    1 - Hot Cue 1
-    2 - Hot Cue 2
-    3 - Hot Cue 3
+    1 - Hot Cue 1,
+    2 - Hot Cue 2,
+    3 - Hot Cue 3,
     Memo - Hot Cue 4
     
    Hold+Memo - Delete mode, next HotCue button pushed is deleted.
    
 Display Area:
-    Select Knob - Scroll through Library and push to Load Deck
-    Back Button - Toggle Library/Directory mode
-    Text Mode - ?
-    Auto Cue - Beat grid adjustment?
-    BPM - BPM tap?
-    Lock - Maybe to lock pitch when tempo is raised or lowered
+    Select Knob - Scroll through Library and push to Load Deck,
+    Back Button - Toggle Library/Directory mode,
+    Text Mode - ?,
+    Auto Cue - Beat grid adjustment?,
+    BPM - BPM tap?,
+    Lock - Maybe to lock pitch when tempo is raised or lowered,
     
 
     
