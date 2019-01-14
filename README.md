@@ -10,7 +10,7 @@ I plan on attempting an updated mapping, the only draw back to these models is t
 
 [Planned Map Features]
 Deck:
-    Play Button
+    Play Button /n
     Cue Button
     Sync will be Momentary & Longpress [Master Tempo Button]
     Tempo Fader
