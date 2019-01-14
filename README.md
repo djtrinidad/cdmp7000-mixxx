@@ -44,7 +44,7 @@ Hot Cues:
     3 - Hot Cue 3
     Memo - Hot Cue 4
     
-   Hold+Memo - Delete mode, next HotCue button pushed is deleted. 
+   Hold+Memo - Delete mode, next HotCue button pushed is deleted.
    
 Display Area:
     Select Knob - Scroll through Library and push to Load Deck
